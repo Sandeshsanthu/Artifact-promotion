@@ -4,7 +4,7 @@ const app = express();
 
 app.get('/', (req, res) => {
 res.json({
-message: 'Hellos from Helm Artifact Promotion Demo',
+message: 'Helloss from Helm Artifact Promotion Demo',
 version: process.env.APP_VERSION
 });
 });
