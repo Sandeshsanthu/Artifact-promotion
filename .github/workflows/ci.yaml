@@ -48,7 +48,6 @@ jobs:
 
       - name: Update overlays/dev to the pushed digest
         run: |
-          # Capture the output from the build step
           DIGEST="${{ steps.build.outputs.digest }}"
           FILE="overlays/dev/kustomization.yaml"
           IMAGE_NAME="${{ vars.DOCKERHUB_USERNAME }}/app"
