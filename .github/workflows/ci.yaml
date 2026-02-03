@@ -50,20 +50,18 @@ jobs:
       - name: Update overlays/dev to the pushed digest
         run: |
           DIGEST="${{ steps.build.outputs.digest }}"
-          FILE="overlays/dev/kustomization.yaml"
+          # FIXED: Added manifest-repo/ to the path
+          FILE="manifest-repo/overlays/dev/kustomization.yaml"
           IMAGE_NAME="${{ vars.DOCKERHUB_USERNAME }}/app"
 
           echo "Pushed digest: ${DIGEST}"
           
-          # Check if file exists
           if [ ! -f "$FILE" ]; then
-             echo "Error: $FILE not found!"
-            exit 1
+             echo "Error: $FILE not found at $FILE!"
+             ls -R manifest-repo
+             exit 1
           fi
 
-          # Use yq to update the digest and name. 
-          # We use env variables to safely pass values into the yq expression.
-          # This removes the need for complex nested quoting.
           IMAGE_NAME="$IMAGE_NAME" NEW_DIGEST="$DIGEST" yq -i '
             .images[] |= select(.name == "app-image") |= (
               .newName = env(IMAGE_NAME) | 
@@ -72,4 +70,17 @@ jobs:
             )
           ' "$FILE"
 
-          git diff -- "$FILE"
+          # FIXED: Run diff inside the manifest folder
+          cd manifest-repo && git diff -- "overlays/dev/kustomization.yaml"
+
+      - name: Create PR for dev deploy
+        uses: peter-evans/create-pull-request@v7
+        with:
+          token: ${{ secrets.GITOPS_PAT }}
+          path: manifest-repo  # REQUIRED: Tell the PR tool where the files are
+          title: "Deploy dev: ${{ github.sha }}"
+          branch: "deploy/dev-${{ github.sha }}"
+          commit-message: "chore: update dev image digest"
+          body: "Updating dev environment to image digest ${{ steps.build.outputs.digest }}"
+          add-paths: |
+            overlays/dev/kustomization.yaml
