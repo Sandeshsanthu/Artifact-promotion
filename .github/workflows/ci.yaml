@@ -34,10 +34,10 @@ jobs:
           tags: |
             ${{ vars.DOCKERHUB_USERNAME }}/app:${{ github.sha }}
 
-      - name: Install yq
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y yq
+      # - name: Install yq
+      #   run: |
+      #     sudo apt-get update
+      #     sudo apt-get install -y yq
 
       - name: Checkout Manifest Repo
         uses: actions/checkout@v4
@@ -61,7 +61,6 @@ jobs:
              ls -R manifest-repo
              exit 1
           fi
-
           IMAGE_NAME="$IMAGE_NAME" NEW_DIGEST="$DIGEST" yq -i '
             .images[] |= select(.name == "app-image") |= (
               .newName = env(IMAGE_NAME) | 
@@ -69,18 +68,4 @@ jobs:
               del(.newTag)
             )
           ' "$FILE"
-
-          # FIXED: Run diff inside the manifest folder
           cd manifest-repo && git diff -- "overlays/dev/kustomization.yaml"
-
-      - name: Create PR for dev deploy
-        uses: peter-evans/create-pull-request@v7
-        with:
-          token: ${{ secrets.GITOPS_PAT }}
-          path: manifest-repo  # REQUIRED: Tell the PR tool where the files are
-          title: "Deploy dev: ${{ github.sha }}"
-          branch: "deploy/dev-${{ github.sha }}"
-          commit-message: "chore: update dev image digest"
-          body: "Updating dev environment to image digest ${{ steps.build.outputs.digest }}"
-          add-paths: |
-            overlays/dev/kustomization.yaml
