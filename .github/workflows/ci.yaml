@@ -41,32 +41,28 @@ jobs:
 
       - name: Update overlays/dev to the pushed digest
         run: |
-          
+          # Capture the output from the build step
           DIGEST="${{ steps.build.outputs.digest }}"
           FILE="overlays/dev/kustomization.yaml"
+          IMAGE_NAME="${{ vars.DOCKERHUB_USERNAME }}/app"
 
           echo "Pushed digest: ${DIGEST}"
-          test -f "${FILE}"
+          
+          # Check if file exists
+          if [ ! -f "$FILE" ]; then
+             echo "Error: $FILE not found!"
+            exit 1
+          fi
 
-          # Update: images[].digest for the app-image entry
-          yq -i '
-            (.images[] | select(.name == "app-image") | .newName) = "'"${{ vars.DOCKERHUB_USERNAME }}/app"'"
-          ' "${FILE}"
+          # Use yq to update the digest and name. 
+          # We use env variables to safely pass values into the yq expression.
+          # This removes the need for complex nested quoting.
+          IMAGE_NAME="$IMAGE_NAME" NEW_DIGEST="$DIGEST" yq -i '
+            .images[] |= select(.name == "app-image") |= (
+              .newName = env(IMAGE_NAME) | 
+              .digest = env(NEW_DIGEST) | 
+              del(.newTag)
+            )
+          ' "$FILE"
 
-          yq -i '
-            (.images[] | select(.name == "app-image") | .digest) = "'"${DIGEST}"'"
-          ' "${FILE}"
-
-          git diff -- "${FILE}"
-
-      - name: Create PR for dev deploy (digest update only)
-        uses: peter-evans/create-pull-request@v7
-        with:
-          title: "Deploy dev: ${{ github.sha }}"
-          branch: "deploy/dev/${{ github.sha }}"
-          commit-message: "Deploy dev digest for ${{ github.sha }}"
-          body: |
-            Dev deploy for commit ${{ github.sha }}
-            Digest: ${{ steps.build.outputs.digest }}
-          add-paths: |
-            overlays/dev/kustomization.yaml
+          git diff -- "$FILE"
