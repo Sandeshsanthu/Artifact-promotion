@@ -45,6 +45,7 @@ jobs:
           repository: Sandeshsanthu/artifact-promotion-deployment.git
           path: manifest-repo # This puts the manifests in a sub-folder
           token: ${{ secrets.GITOPS_PAT }} # Needs a Personal Access Token with repo scope
+          ref: main
 
       - name: Update overlays/dev to the pushed digest
         run: |
