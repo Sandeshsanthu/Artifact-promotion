@@ -34,4 +34,7 @@ jobs:
           tags: |
             ${{ vars.DOCKERHUB_USERNAME }}/app:${{ github.sha }}
 
-      
+      - name: Install yq
+        run | 
+          sudo apt-get update
+          sudo apt-get install -y yq
