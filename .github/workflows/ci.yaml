@@ -35,6 +35,38 @@ jobs:
             ${{ vars.DOCKERHUB_USERNAME }}/app:${{ github.sha }}
 
       - name: Install yq
-        run | 
+        run: |
           sudo apt-get update
           sudo apt-get install -y yq
+
+      - name: Update overlays/dev to the pushed digest
+        run: |
+          
+          DIGEST="${{ steps.build.outputs.digest }}"
+          FILE="overlays/dev/kustomization.yaml"
+
+          echo "Pushed digest: ${DIGEST}"
+          test -f "${FILE}"
+
+          # Update: images[].digest for the app-image entry
+          yq -i '
+            (.images[] | select(.name == "app-image") | .newName) = "'"${{ vars.DOCKERHUB_USERNAME }}/app"'"
+          ' "${FILE}"
+
+          yq -i '
+            (.images[] | select(.name == "app-image") | .digest) = "'"${DIGEST}"'"
+          ' "${FILE}"
+
+          git diff -- "${FILE}"
+
+      - name: Create PR for dev deploy (digest update only)
+        uses: peter-evans/create-pull-request@v7
+        with:
+          title: "Deploy dev: ${{ github.sha }}"
+          branch: "deploy/dev/${{ github.sha }}"
+          commit-message: "Deploy dev digest for ${{ github.sha }}"
+          body: |
+            Dev deploy for commit ${{ github.sha }}
+            Digest: ${{ steps.build.outputs.digest }}
+          add-paths: |
+            overlays/dev/kustomization.yaml
