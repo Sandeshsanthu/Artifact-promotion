@@ -39,6 +39,13 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y yq
 
+      - name: Checkout Manifest Repo
+        uses: actions/checkout@v4
+        with:
+          repository: Sandeshsanthu/artifact-promotion-deployment.git
+          path: manifest-repo # This puts the manifests in a sub-folder
+          token: ${{ secrets.GITOPS_PAT }} # Needs a Personal Access Token with repo scope
+
       - name: Update overlays/dev to the pushed digest
         run: |
           # Capture the output from the build step
