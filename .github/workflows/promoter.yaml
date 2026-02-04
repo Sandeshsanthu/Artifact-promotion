@@ -52,11 +52,32 @@ jobs:
            TGT="${{ github.event.inputs.target_env }}"
            if [ "${SRC}" = "dev" ] && [ "${TGT}" = "qa" ]; then exit 0; fi
            if [ "${SRC}" = "qa" ] && [ "${TGT}" = "prod" ]; then exit 0; fi
-           echo $SRC
-           echo $TGT
+           echo "${SRC}"
+           echo "${TGT}"
            echo "Invalid promotion path: ${SRC} -> ${TGT}"
            echo "Allowed: dev->qa, qa->prod"
            exit 1
+
+      - name: Read image reference from source overlay
+        id: read
+        run: |
+          set -euo pipefail
+
+          ROOT="${{ github.event.inputs.manifest_root }}"
+          SRC="${{ github.event.inputs.source_env }}"
+          SRC_FILE="${ROOT}/overlays/${SRC}/kustomization.yaml"
+          echo "${SRC_FILE}"
+
+          if [ ! -f "${SRC_FILE}" ]; then
+            echo "Source file not found: ${SRC_FILE}"
+            echo "Repo tree under ${ROOT}:"
+            ls -R "${ROOT}" || true
+            exit 1
+          fi
+
+          echo "---- ${SRC_FILE} (numbered) ----"
+          nl -ba "${SRC_FILE}" | sed -n '1,200p'
+
 
 
 
