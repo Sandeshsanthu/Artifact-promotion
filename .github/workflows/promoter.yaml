@@ -109,7 +109,7 @@ jobs:
         uses: peter-evans/create-pull-request@v7
         with:
           path: manifest-repo
-          token: ${{ secrets.MANIFEST_REPO_TOKEN }}
+          token: ${{ secrets.GITOPS_PAT }}
           title: "Promote ${{ github.event.inputs.source_env }} -> ${{ github.event.inputs.target_env }}"
           branch: "promote/${{ github.event.inputs.source_env }}-to-${{ github.event.inputs.target_env }}/${{ steps.read.outputs.digest_safe }}"
           commit-message: "Promote digest to ${{ github.event.inputs.target_env }}"
