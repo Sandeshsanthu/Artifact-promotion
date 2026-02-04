@@ -1,7 +1,4 @@
 name: promote
-concurrency:
-  group: promote-${{ github.event.inputs.source_env }}-${{ github.event.inputs.target_env }}
-  cancel-in-progress: true
 
 on:
   workflow_dispatch:
@@ -115,12 +112,10 @@ jobs:
           token: ${{ secrets.GITOPS_PAT }}
           base: main
           title: "Promote ${{ github.event.inputs.source_env }} -> ${{ github.event.inputs.target_env }}"
-          # branch: "promote/${{ github.event.inputs.source_env }}-to-${{ github.event.inputs.target_env }}/${{ steps.read.outputs.digest_safe }}"
-          branch: "promote/${{ github.event.inputs.source_env }}-to-${{ github.event.inputs.target_env }}"
+          branch: "promote/${{ github.event.inputs.source_env }}-to-${{ github.event.inputs.target_env }}/${{ steps.read.outputs.digest_safe }}"
           commit-message: "Promote digest to ${{ github.event.inputs.target_env }}"
           add-paths: |
             overlays/${{ github.event.inputs.target_env }}/kustomization.yaml
-            
 
 
 
