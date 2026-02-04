@@ -120,7 +120,7 @@ jobs:
           commit-message: "Promote digest to ${{ github.event.inputs.target_env }}"
           add-paths: |
             overlays/${{ github.event.inputs.target_env }}/kustomization.yaml
-            delete-branch: true
+            
 
 
 
