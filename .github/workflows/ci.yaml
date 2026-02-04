@@ -82,5 +82,5 @@ jobs:
             exit 0
           fi
 
-          git commit -m "dev: update app image digest to ${DIGEST}"
+          git commit -m "deve: update app image digest to ${DIGEST}"
           git push origin main
