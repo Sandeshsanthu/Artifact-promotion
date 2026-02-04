@@ -37,9 +37,9 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: Sandeshsanthu/artifact-promotion-deployment
-          ref: ${{ github.event.inputs.manifests_ref }}
+          ref: main
           path: manifest-repo
-          token: ${{ secrets.MANIFEST_REPO_TOKEN }}
+          token: ${{ secrets.GITOPS_PAT }}
           fetch-depth: 0
 
       - name: Install yq (mikefarah v4)
